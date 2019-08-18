@@ -1,26 +1,14 @@
-# README
+# Readme
 
 "cornflakes-linter" is a wrapper for `flake8`.
 
-It expects flake to be installed and already added to the path. If it is installed but cannot be found, add the path to your preferences as seen below.
+vscode currently already has flake8 integration HOWEVER it doesn't play nicely with flake8 plugins in that the regex can't parse the output correctly. This means that the errors/warnings/information do not show up in the problems tab. This extension rectifies this.
+
+it is expected that flake8 is installed and already added to the path. If it is installed but cannot be found, add the path to your preferences (settings.json) as seen below.
 
 ```json
 {
-"cornflakes.linter.executablePath": "PathToExecutable"
-}
-```
-
-## Configuration
-
-There are various options that can be configured by making changes to your user or workspace preferences.
-
-### Lint onType or onSave or not at all
-
-By default the linter will lint on the fly but can be changed to linting as you save. Note that linting on save is most useful when auto-save is on. Use the setting below if to change the behavior with the values `onType`, `onSave`, and `off`.
-
-```json
-{
-"cornflakes.linter.run": "onType"
+	"cornflakes.linter.executablePath": "path/to/flake8"
 }
 ```
 
@@ -28,4 +16,4 @@ By default the linter will lint on the fly but can be changed to linting as you 
 
 The extension architecture is based off of the PHPValidationProvider from the built-in [php extension](https://github.com/Microsoft/vscode/tree/master/extensions/php).
 
-And also [ruby-linter](https://github.com/hoovercj/vscode-ruby-linter)
+And is virtually a direct copy of [ruby-linter](https://github.com/hoovercj/vscode-ruby-linter)
