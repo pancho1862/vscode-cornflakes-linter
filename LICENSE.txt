@@ -1,4 +1,5 @@
-Copyright (c) Cody Hoover
+Copyright (c) Cody Hoover (original)
+Copyright (c) Kevin Glasson (modifications)
 
 All rights reserved.
 

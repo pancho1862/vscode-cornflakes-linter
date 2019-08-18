@@ -19,7 +19,7 @@ namespace RunTrigger {
 		onType: 'onType',
 		off: 'off'
 	}
-	export let from = function(value: string): RunTrigger {
+	export let from = function (value: string): RunTrigger {
 		if (value === 'onType') {
 			return RunTrigger.onType;
 		} else if (value === 'onSave') {
@@ -31,44 +31,44 @@ namespace RunTrigger {
 }
 
 export interface LinterConfiguration {
-	executable:string,
-	fileArgs:string[],
-	bufferArgs:string[],
-	extraArgs:string[],
-	runTrigger:string,
+	executable: string,
+	fileArgs: string[],
+	bufferArgs: string[],
+	extraArgs: string[],
+	runTrigger: string,
 }
 
 export interface Linter {
-	languageId:string,
-	loadConfiguration:()=>LinterConfiguration,
-	process:(output:string[])=>vscode.Diagnostic[]	
+	languageId: string,
+	loadConfiguration: () => LinterConfiguration,
+	process: (output: string[]) => vscode.Diagnostic[]
 }
 
 export class LintingProvider {
-	
+
 	public linterConfiguration: LinterConfiguration;
 
 	private executableNotFound: boolean;
-	
+
 	private documentListener: vscode.Disposable;
 	private diagnosticCollection: vscode.DiagnosticCollection;
 	private delayers: { [key: string]: ThrottledDelayer<void> };
-	
-	
-	private linter:Linter;
-	constructor(linter:Linter) {
+
+
+	private linter: Linter;
+	constructor(linter: Linter) {
 		this.linter = linter;
 		this.executableNotFound = false;
 	}
 
 	public activate(subscriptions: vscode.Disposable[]) {
-		this.diagnosticCollection = vscode.languages.createDiagnosticCollection();
+		this.diagnosticCollection = vscode.languages.createDiagnosticCollection('cornflakes');
 		subscriptions.push(this);
 		vscode.workspace.onDidChangeConfiguration(this.loadConfiguration, this, subscriptions);
 		this.loadConfiguration();
 
 		vscode.workspace.onDidOpenTextDocument(this.triggerLint, this, subscriptions);
-		vscode.workspace.onDidCloseTextDocument((textDocument)=> {
+		vscode.workspace.onDidCloseTextDocument((textDocument) => {
 			this.diagnosticCollection.delete(textDocument.uri);
 			delete this.delayers[textDocument.uri.toString()];
 		}, null, subscriptions);
@@ -85,7 +85,7 @@ export class LintingProvider {
 	private loadConfiguration(): void {
 		let oldExecutable = this.linterConfiguration && this.linterConfiguration.executable;
 		this.linterConfiguration = this.linter.loadConfiguration();
-		
+
 		this.delayers = Object.create(null);
 		if (this.executableNotFound) {
 			this.executableNotFound = oldExecutable === this.linterConfiguration.executable;
@@ -99,14 +99,14 @@ export class LintingProvider {
 			});
 		} else {
 			this.documentListener = vscode.workspace.onDidSaveTextDocument(this.triggerLint, this);
-		}		
+		}
 		this.documentListener = vscode.workspace.onDidSaveTextDocument(this.triggerLint, this);
 		// Configuration has changed. Reevaluate all documents.
 		vscode.workspace.textDocuments.forEach(this.triggerLint, this);
 	}
 
 	private triggerLint(textDocument: vscode.TextDocument): void {
-		if (textDocument.languageId !== this.linter.languageId || this.executableNotFound || RunTrigger.from(this.linterConfiguration.runTrigger) === RunTrigger.off){
+		if (textDocument.languageId !== this.linter.languageId || this.executableNotFound || RunTrigger.from(this.linterConfiguration.runTrigger) === RunTrigger.off) {
 			return;
 		}
 		let key = textDocument.uri.toString();
@@ -115,7 +115,7 @@ export class LintingProvider {
 			delayer = new ThrottledDelayer<void>(RunTrigger.from(this.linterConfiguration.runTrigger) === RunTrigger.onType ? 250 : 0);
 			this.delayers[key] = delayer;
 		}
-		delayer.trigger(() => this.doLint(textDocument) );
+		delayer.trigger(() => this.doLint(textDocument));
 	}
 
 	private doLint(textDocument: vscode.TextDocument): Promise<void> {
@@ -125,17 +125,18 @@ export class LintingProvider {
 			let decoder = new LineDecoder();
 			let decoded = []
 			let diagnostics: vscode.Diagnostic[] = [];
-			
+
 			let options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
 			let args: string[];
 			if (RunTrigger.from(this.linterConfiguration.runTrigger) === RunTrigger.onSave) {
 				args = this.linterConfiguration.fileArgs.slice(0);
-				args.push(textDocument.fileName);
+				args.push(filePath);
 			} else {
 				args = this.linterConfiguration.bufferArgs;
+				args.push(filePath);
 			}
 			args = args.concat(this.linterConfiguration.extraArgs);
-			
+
 			let childProcess = cp.spawn(executable, args, options);
 			childProcess.on('error', (error: Error) => {
 				if (this.executableNotFound) {
@@ -144,7 +145,7 @@ export class LintingProvider {
 				}
 				let message: string = null;
 				if ((<any>error).code === 'ENOENT') {
-					message = `Cannot lint ${textDocument.fileName}. The executable was not found. Use the '${this.linter.languageId}.executablePath' setting to configure the location of the executable`;
+					message = `Cannot lint ${filePath}. The executable was not found. Use the '${this.linter.languageId}.executablePath' setting to configure the location of the executable`;
 				} else {
 					message = error.message ? error.message : `Failed to run executable using path: ${executable}. Reason is unknown.`;
 				}
@@ -152,18 +153,30 @@ export class LintingProvider {
 				this.executableNotFound = true;
 				resolve();
 			});
-			
-			let onDataEvent = (data:Buffer) => { decoder.write(data) };
+
+			let onDataEvent = (data: Buffer) => { decoder.write(data) };
 			let onEndEvent = () => {
 				decoder.end();
 				let lines = decoder.getLines();
 				if (lines && lines.length > 0) {
 					diagnostics = this.linter.process(lines);
-				}					
-				this.diagnosticCollection.set(textDocument.uri, diagnostics);
+				}
+
+				const filteredDiagnostics = diagnostics.reduce((acc, current) => {
+					const x = acc.find(item => {
+						return (item.range.start.line === current.range.start.line) && (item.code === current.code)
+					});
+					if (!x) {
+						return acc.concat([current]);
+					} else {
+						return acc;
+					}
+				}, []);
+
+				this.diagnosticCollection.set(textDocument.uri, filteredDiagnostics);
 				resolve();
 			}
-			
+
 			if (childProcess.pid) {
 				if (RunTrigger.from(this.linterConfiguration.runTrigger) === RunTrigger.onType) {
 					childProcess.stdin.write(textDocument.getText());

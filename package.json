@@ -1,24 +1,24 @@
 {
-	"name": "ruby-linter",
-	"displayName": "ruby-linter",
-	"description": "An extension to use built in ruby linting in vscode",
+	"name": "cornflakes-linter",
+	"displayName": "cornflakes-linter",
+	"description": "An extension to use built in python linting in vscode, it rectifies current problems with displaying ALL flake8 problems in the problems tab.",
 	"version": "1.0.0",
-	"publisher": "hoovercj",
+	"publisher": "kevinglasson",
 	"icon": "images/ruby.png",
 	"categories": [
 		"Linters"
 	],
 	"license": "SEE LICENSE IN LICENSE.txt",
-	"homepage": "https://github.com/hoovercj/vscode-ruby-linter",
+	"homepage": "https://github.com/hoovercj/vscode-cornflakes-linter",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/hoovercj/vscode-ruby-linter.git"
+		"url": "https://github.com/hoovercj/vscode-cornflakes-linter.git"
 	},
 	"engines": {
 		"vscode": "^1.0.0"
 	},
 	"activationEvents": [
-		"onLanguage:ruby"
+		"onLanguage:python"
 	],
 	"main": "./out/src/extension",
 	"scripts": {
@@ -33,17 +33,21 @@
 	"contributes": {
 		"configuration": {
 			"properties": {
-				"ruby.linter.executablePath": {
+				"cornflakes.linter.executablePath": {
 					"type": "string",
-					"default": "ruby",
-					"description": "Points to the ruby exectuable."
+					"default": "flake8",
+					"description": "Points to the flake8 exectuable."
 				},
-				"ruby.linter.run": {
+				"cornflakes.linter.run": {
 					"type": "string",
-					"enum": ["onSave", "onType", "off"],
+					"enum": [
+						"onSave",
+						"onType",
+						"off"
+					],
 					"default": "onType",
 					"description": "Whether the linter is run on save or on type or disabled."
-				}		
+				}
 			}
 		}
 	}

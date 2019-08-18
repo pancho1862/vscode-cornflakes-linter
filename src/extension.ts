@@ -1,10 +1,8 @@
-import * as vscode from 'vscode'; 
+import * as vscode from 'vscode';
 
-import RubyLintingProvider from './features/rubyLinter';
+import Flake8LintingProvider from './features/flake8Linter';
 
-import * as cp from 'child_process';
-
-export function activate(context: vscode.ExtensionContext) {	
-	let linter = new RubyLintingProvider();	
-	linter.activate(context.subscriptions);	
+export function activate(context: vscode.ExtensionContext) {
+	let linter = new Flake8LintingProvider();
+	linter.activate(context.subscriptions);
 }
