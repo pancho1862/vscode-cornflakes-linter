@@ -4,7 +4,7 @@
 	"description": "An extension to use built in python linting in vscode, it rectifies current problems with displaying ALL flake8 problems in the problems tab.",
 	"version": "1.0.0",
 	"publisher": "kevinglasson",
-	"icon": "images/ruby.png",
+	"icon": "images/cornflakes.png",
 	"categories": [
 		"Linters"
 	],
