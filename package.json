@@ -2,13 +2,18 @@
 	"name": "cornflakes-linter",
 	"displayName": "cornflakes-linter",
 	"description": "An extension to use built in python linting in vscode, it rectifies current problems with displaying ALL flake8 problems in the problems tab.",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "kevinglasson",
 	"icon": "images/cornflakes.png",
 	"categories": [
 		"Linters"
 	],
-	"keywords": ["python", "linter", "flake8", "lint"],
+	"keywords": [
+		"python",
+		"linter",
+		"flake8",
+		"lint"
+	],
 	"license": "SEE LICENSE IN LICENSE.txt",
 	"homepage": "https://github.com/kevinglasson/vscode-cornflakes-linter",
 	"repository": {
