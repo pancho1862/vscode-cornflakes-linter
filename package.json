@@ -12,7 +12,8 @@
 		"python",
 		"linter",
 		"flake8",
-		"lint"
+		"lint",
+		"plugin"
 	],
 	"license": "SEE LICENSE IN LICENSE.txt",
 	"homepage": "https://github.com/kevinglasson/vscode-cornflakes-linter",
@@ -51,8 +52,8 @@
 						"onType",
 						"off"
 					],
-					"default": "onType",
-					"description": "Whether the linter is run on save or on type or disabled."
+					"default": "onSave",
+					"description": "Whether the linter is run on save, on type or disabled."
 				}
 			}
 		}

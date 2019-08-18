@@ -23,21 +23,28 @@ export default class Flake8LintingProvider implements Linter {
 			fileArgs: [],
 			bufferArgs: [],
 			extraArgs: [],
-			runTrigger: section.get<string>('linter.run', 'onType')
+			runTrigger: section.get<string>('linter.run', 'onSave')
 		}
 	}
 
 	public process(lines: string[], filePath: string): Diagnostic[] {
 		let diagnostics: Diagnostic[] = [];
+
 		const regex = /^(.+):(\d+):(\d+):\ (\S+\d+):?\ (.+)$/gm;
 		const filePathRegex = new RegExp(filePath);
+
+		
 
 		lines.forEach(line => {
 			if (line !== "\n" && line !== "") {
 				const matches = regex.exec(line);
+
 				if (matches === null) {
 					return;
 				}
+
+				// Check that the the error is actually for the file we are 
+				// processing.
 				if (matches[1].match(filePathRegex)) {
 					diagnostics.push({
 						range: new Range(parseInt(matches[2]) - 1, 0, parseInt(matches[2]) - 1, Number.MAX_VALUE),
