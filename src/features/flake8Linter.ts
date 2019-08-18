@@ -1,4 +1,5 @@
 'use strict';
+
 import { workspace, Disposable, Diagnostic, DiagnosticSeverity, Range } from 'vscode';
 
 import { LintingProvider, LinterConfiguration, Linter } from './utils/lintingProvider';
@@ -26,21 +27,27 @@ export default class Flake8LintingProvider implements Linter {
 		}
 	}
 
-	public process(lines: string[]): Diagnostic[] {
+	public process(lines: string[], filePath: string): Diagnostic[] {
 		let diagnostics: Diagnostic[] = [];
-		lines.forEach(function (line) {
-			const regex = /^(.+):(\d+):(\d+):\ (\S+\d+):?\ (.+)$/gm;
-			const matches = regex.exec(line);
-			if (matches === null) {
-				return;
+		const regex = /^(.+):(\d+):(\d+):\ (\S+\d+):?\ (.+)$/gm;
+		const filePathRegex = new RegExp(filePath);
+
+		lines.forEach(line => {
+			if (line !== "\n" && line !== "") {
+				const matches = regex.exec(line);
+				if (matches === null) {
+					return;
+				}
+				if (matches[1].match(filePathRegex)) {
+					diagnostics.push({
+						range: new Range(parseInt(matches[2]) - 1, 0, parseInt(matches[2]) - 1, Number.MAX_VALUE),
+						severity: DiagnosticSeverity.Information,
+						message: matches[5],
+						code: matches[4],
+						source: 'cornflakes'
+					});
+				}
 			}
-			diagnostics.push({
-				range: new Range(parseInt(matches[2]) - 1, 0, parseInt(matches[2]) - 1, Number.MAX_VALUE),
-				severity: DiagnosticSeverity.Information,
-				message: matches[5],
-				code: matches[4],
-				source: 'cornflakes'
-			});
 		});
 		return diagnostics;
 	}

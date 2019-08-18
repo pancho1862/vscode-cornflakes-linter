@@ -3,7 +3,7 @@ import { NodeStringDecoder, StringDecoder } from 'string_decoder';
 export class LineDecoder {
 	private stringDecoder: NodeStringDecoder;
 	private remaining: string;
-	private lines: string[]
+	private lines: string[];
 
 	constructor(encoding: string = 'utf8') {
 		this.stringDecoder = new StringDecoder(encoding);
@@ -51,7 +51,7 @@ export class LineDecoder {
 		}
 		return this.remaining;
 	}
-	
+
 	public getLines(): string[] {
 		return this.lines;
 	}

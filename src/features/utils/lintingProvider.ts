@@ -41,7 +41,7 @@ export interface LinterConfiguration {
 export interface Linter {
 	languageId: string,
 	loadConfiguration: () => LinterConfiguration,
-	process: (output: string[]) => vscode.Diagnostic[]
+	process: (output: string[], filePath: string) => vscode.Diagnostic[]
 }
 
 export class LintingProvider {
@@ -53,6 +53,8 @@ export class LintingProvider {
 	private documentListener: vscode.Disposable;
 	private diagnosticCollection: vscode.DiagnosticCollection;
 	private delayers: { [key: string]: ThrottledDelayer<void> };
+
+	private decoder: LineDecoder;
 
 
 	private linter: Linter;
@@ -68,10 +70,13 @@ export class LintingProvider {
 		this.loadConfiguration();
 
 		vscode.workspace.onDidOpenTextDocument(this.triggerLint, this, subscriptions);
+
 		vscode.workspace.onDidCloseTextDocument((textDocument) => {
 			this.diagnosticCollection.delete(textDocument.uri);
 			delete this.delayers[textDocument.uri.toString()];
 		}, null, subscriptions);
+
+		this.decoder = new LineDecoder();
 
 		// Lint all open documents documents
 		vscode.workspace.textDocuments.forEach(this.triggerLint, this);
@@ -122,9 +127,9 @@ export class LintingProvider {
 		return new Promise<void>((resolve, reject) => {
 			let executable = this.linterConfiguration.executable;
 			let filePath = textDocument.fileName;
-			let decoder = new LineDecoder();
-			let decoded = []
 			let diagnostics: vscode.Diagnostic[] = [];
+			let filteredDiagnostics: vscode.Diagnostic[] = [];
+			let buffer = ''
 
 			let options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
 			let args: string[];
@@ -138,6 +143,7 @@ export class LintingProvider {
 			args = args.concat(this.linterConfiguration.extraArgs);
 
 			let childProcess = cp.spawn(executable, args, options);
+
 			childProcess.on('error', (error: Error) => {
 				if (this.executableNotFound) {
 					resolve();
@@ -154,41 +160,40 @@ export class LintingProvider {
 				resolve();
 			});
 
-			let onDataEvent = (data: Buffer) => { decoder.write(data) };
+			let onDataEvent = (data: Buffer) => { buffer += data.toString() };
 			let onEndEvent = () => {
-				decoder.end();
-				let lines = decoder.getLines();
+				let lines = buffer.split(/(\r?\n)/g)
+				buffer = "";
+
 				if (lines && lines.length > 0) {
-					diagnostics = this.linter.process(lines);
+					diagnostics = this.linter.process(lines, filePath);
+
+					const filteredDiagnostics = diagnostics.reduce((acc, current) => {
+						const x = acc.find(item => {
+							return (item.range.start.line === current.range.start.line) && (item.code === current.code)
+						});
+						if (!x) {
+							return acc.concat([current]);
+						} else {
+							return acc;
+						}
+					}, []);
+
+					this.diagnosticCollection.set(textDocument.uri, filteredDiagnostics);
+
+					childProcess.kill()
 				}
 
-				const filteredDiagnostics = diagnostics.reduce((acc, current) => {
-					const x = acc.find(item => {
-						return (item.range.start.line === current.range.start.line) && (item.code === current.code)
-					});
-					if (!x) {
-						return acc.concat([current]);
-					} else {
-						return acc;
-					}
-				}, []);
-
-				this.diagnosticCollection.set(textDocument.uri, filteredDiagnostics);
 				resolve();
 			}
 
-			if (childProcess.pid) {
-				if (RunTrigger.from(this.linterConfiguration.runTrigger) === RunTrigger.onType) {
-					childProcess.stdin.write(textDocument.getText());
-					childProcess.stdin.end();
-				}
-				childProcess.stderr.on('data', onDataEvent);
-				childProcess.stderr.on('end', onEndEvent);
-				childProcess.stdout.on('data', onDataEvent);
-				childProcess.stdout.on('end', onEndEvent);
-			} else {
-				resolve();
-			}
+			// childProcess.stderr.on('data', onDataEvent);
+			// childProcess.stderr.on('end', onEndEvent);
+			childProcess.stdout.on('data', onDataEvent);
+			childProcess.stdout.on('end', onEndEvent);
+
+			resolve();
+
 		});
 	}
 }
