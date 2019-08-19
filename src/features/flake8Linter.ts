@@ -33,14 +33,15 @@ export default class Flake8LintingProvider implements Linter {
 		const regex = /^(.+):(\d+):(\d+):\ (\S+\d+):?\ (.+)$/gm;
 		const filePathRegex = new RegExp(filePath);
 
-		
 
 		lines.forEach(line => {
 			if (line !== "\n" && line !== "") {
 				const matches = regex.exec(line);
 
+				// No errors found so return an empty list.
 				if (matches === null) {
-					return;
+					diagnostics = [];
+					return diagnostics;
 				}
 
 				// Check that the the error is actually for the file we are 
