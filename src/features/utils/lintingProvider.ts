@@ -129,6 +129,7 @@ export class LintingProvider {
 			let options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
 			let args: string[] = [];
 
+			args.push("-v")
 			args.push(filePath);
 
 			let childProcess = cp.spawn(executable, args, options);
@@ -174,6 +175,7 @@ export class LintingProvider {
 					}, []);
 
 					this.diagnosticCollection.set(textDocument.uri, filteredDiagnostics);
+
 					// Reset the buffer.
 					buffer = "";
 				}

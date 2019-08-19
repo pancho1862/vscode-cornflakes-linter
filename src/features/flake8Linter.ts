@@ -29,32 +29,47 @@ export default class Flake8LintingProvider implements Linter {
 
 	public process(lines: string[], filePath: string): Diagnostic[] {
 		let diagnostics: Diagnostic[] = [];
+		let violations: number = 0;
 
 		const regex = /^(.+):(\d+):(\d+):\ (\S+\d+):?\ (.+)$/gm;
 		const filePathRegex = new RegExp(filePath);
-
+		const violationsRegex = /Found a total of \d+ violations and reported (\d+)$/gm;
 
 		lines.forEach(line => {
-			if (line !== "\n" && line !== "") {
-				const matches = regex.exec(line);
+			const matches = violationsRegex.exec(line);
+			violationsRegex.lastIndex = 0;
 
-				// No errors found so return an empty list.
-				if (matches === null) {
-					diagnostics = [];
-					return diagnostics;
-				}
+			if (matches !== null) {
+				violations = parseInt(matches[1]);
+				return true;
+			}
 
-				// Check that the the error is actually for the file we are 
-				// processing.
-				if (matches[1].match(filePathRegex)) {
-					diagnostics.push({
-						range: new Range(parseInt(matches[2]) - 1, 0, parseInt(matches[2]) - 1, Number.MAX_VALUE),
-						severity: DiagnosticSeverity.Information,
-						message: matches[5],
-						code: matches[4],
-						source: 'cornflakes'
-					});
-				}
+		});
+
+		if (violations === 0) {
+			diagnostics = [];
+			return diagnostics;
+		}
+
+		lines.forEach(line => {
+			const matches = regex.exec(line);
+			regex.lastIndex = 0;
+
+			// No errors found so return an empty list.
+			if (matches === null) {
+				return;
+			}
+
+			// Check that the the error is actually for the file we are 
+			// processing.
+			if (matches[1].match(filePathRegex)) {
+				diagnostics.push({
+					range: new Range(parseInt(matches[2]) - 1, 0, parseInt(matches[2]) - 1, Number.MAX_VALUE),
+					severity: DiagnosticSeverity.Information,
+					message: matches[5],
+					code: matches[4],
+					source: 'cornflakes'
+				});
 			}
 		});
 		return diagnostics;
