@@ -4,7 +4,7 @@
 	"description": "Wrapper for Python flake8 linter and associated plugins. It rectifies current issues with displaying ALL flake8 problems in the problems tab.",
 	"version": "0.3.0",
 	"publisher": "kevinglasson",
-	"icon": "images/cornflakes.png",
+	"icon": "images/cereals.png",
 	"categories": [
 		"Linters"
 	],
