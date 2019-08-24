@@ -37,21 +37,41 @@ export default class Flake8LintingProvider implements Linter {
 
 		violations = this.getViolations(lines);
 
+<<<<<<< HEAD
 		if (violations !== 0) {
 			diagnostics = this.getDiagnostics(lines, filePath);
 		} else {
 			diagnostics = [];
 		}
+=======
+		// Find the line that specifies how many violations their were.
+		lines.forEach(line => {
+			const matches = violationsRegex.exec(line);
+			violationsRegex.lastIndex = 0;
+>>>>>>> d7166318439f138bc3efb31b1473f6c8ea4bbb7c
 
 		return diagnostics
 
 	}
 
+<<<<<<< HEAD
 	private getDiagnostics(lines: string[], filePath: string): Diagnostic[] {
 		const lintRegex = /^(.+):(\d+):(\d+):\ (\S+\d+):?\ (.+)$/;
 
 		// const filePathRegex = new RegExp(filePath);
 		let diagnostics: Diagnostic[] = [];
+=======
+		// If there were no violations return an empty diagnostics list.
+		if (violations === 0) {
+			diagnostics = [];
+			return diagnostics;
+		}
+
+		// Process each of the lines looking for the errors.
+		lines.forEach(line => {
+			const matches = regex.exec(line);
+			regex.lastIndex = 0;
+>>>>>>> d7166318439f138bc3efb31b1473f6c8ea4bbb7c
 
 		lines.forEach(line => {
 			let matches = lintRegex.exec(line);
