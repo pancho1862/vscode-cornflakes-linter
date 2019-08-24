@@ -4,6 +4,10 @@ import { workspace, Disposable, Diagnostic, DiagnosticSeverity, Range } from 'vs
 
 import { LintingProvider, LinterConfiguration, Linter } from './utils/lintingProvider';
 
+import * as os from 'os';
+
+import * as path from 'path';
+
 export default class Flake8LintingProvider implements Linter {
 
 	public languageId = 'python';
@@ -31,38 +35,33 @@ export default class Flake8LintingProvider implements Linter {
 		let diagnostics: Diagnostic[] = [];
 		let violations: number = 0;
 
-		const regex = /^(.+):(\d+):(\d+):\ (\S+\d+):?\ (.+)$/gm;
-		const filePathRegex = new RegExp(filePath);
-		const violationsRegex = /Found a total of \d+ violations and reported (\d+)$/gm;
+		violations = this.getViolations(lines);
 
-		lines.forEach(line => {
-			const matches = violationsRegex.exec(line);
-			violationsRegex.lastIndex = 0;
-
-			if (matches !== null) {
-				violations = parseInt(matches[1]);
-				return true;
-			}
-
-		});
-
-		if (violations === 0) {
+		if (violations !== 0) {
+			diagnostics = this.getDiagnostics(lines, filePath);
+		} else {
 			diagnostics = [];
-			return diagnostics;
 		}
 
-		lines.forEach(line => {
-			const matches = regex.exec(line);
-			regex.lastIndex = 0;
+		return diagnostics
 
+	}
+
+	private getDiagnostics(lines: string[], filePath: string): Diagnostic[] {
+		const lintRegex = /^(.+):(\d+):(\d+):\ (\S+\d+):?\ (.+)$/;
+
+		// const filePathRegex = new RegExp(filePath);
+		let diagnostics: Diagnostic[] = [];
+
+		lines.forEach(line => {
+			let matches = lintRegex.exec(line);
 			// No errors found so return an empty list.
 			if (matches === null) {
 				return;
 			}
-
 			// Check that the the error is actually for the file we are 
 			// processing.
-			if (matches[1].match(filePathRegex)) {
+			if (filePath === (matches[1])) {
 				diagnostics.push({
 					range: new Range(parseInt(matches[2]) - 1, 0, parseInt(matches[2]) - 1, Number.MAX_VALUE),
 					severity: DiagnosticSeverity.Information,
@@ -72,6 +71,22 @@ export default class Flake8LintingProvider implements Linter {
 				});
 			}
 		});
+
+		console.log(diagnostics);
 		return diagnostics;
+	}
+
+	private getViolations(lines: string[]): number {
+		const violationsRegex = /Found a total of \d+ violations and reported (\d+)$/;
+		let violations: number = 0;
+
+		lines.some(line => {
+			const matches = violationsRegex.exec(line);
+			if (matches !== null) {
+				violations = parseInt(matches[1]);
+				return true;
+			}
+		});
+		return violations;
 	}
 }

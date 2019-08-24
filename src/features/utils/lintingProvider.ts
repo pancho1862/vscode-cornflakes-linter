@@ -121,15 +121,15 @@ export class LintingProvider {
 
 	private doLint(textDocument: vscode.TextDocument): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
-			let executable = this.linterConfiguration.executable;
-			let filePath = textDocument.fileName;
+			let executable: string = this.linterConfiguration.executable;
+			let filePath: string = textDocument.fileName;
 			let diagnostics: vscode.Diagnostic[] = [];
 			let filteredDiagnostics: vscode.Diagnostic[] = [];
-			let buffer = ""
+			let buffer: string = "";
 			let options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
 			let args: string[] = [];
 
-			args.push("-v")
+			args.push("-v");
 			args.push(filePath);
 
 			let childProcess = cp.spawn(executable, args, options);
@@ -155,9 +155,12 @@ export class LintingProvider {
 			let onDataEvent = (data: Buffer) => { buffer += data.toString() };
 			let onEndEvent = () => {
 				// Split on line ending into an array.
-				let lines = buffer.split(/(\r?\n)/g);
+				let lines: string[] = buffer.split(/(\r?\n)/g);
 
-				lines = lines.filter((line) => (line !== "\n") && (line !== ""))
+				lines = lines.filter((line) => (line !== "\n"));
+				lines = lines.filter((line) => (line !== ""));
+				lines = lines.filter((line) => (line !== "\r\n"));
+
 
 				if (lines && lines.length > 0) {
 					diagnostics = this.linter.process(lines, filePath);
@@ -179,7 +182,6 @@ export class LintingProvider {
 					// Reset the buffer.
 					buffer = "";
 				}
-
 
 				resolve();
 			}

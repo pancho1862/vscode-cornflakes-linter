@@ -2,6 +2,8 @@
 
 "cornflakes-linter" is a wrapper for `flake8`.
 
+** fixed windows pathing issue in the latest release (0.4) **
+
 vscode currently already has flake8 integration HOWEVER it doesn't play nicely with
 flake8 plugins in that the regex can't parse the output correctly. This means that the
 errors/warnings/information do not show up in the problems tab. This extension rectifies
