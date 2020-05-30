@@ -20,8 +20,7 @@ that.
 }
 ```
 
-3. Open a `.py` file and then save it and the extension will run showing all of the lint
-issues in the problems tab.
+3. Open a `.py` file and then save it and the extension will run showing all of the lint issues in the problems tab.
 
 
 ## Configuration
@@ -29,8 +28,7 @@ issues in the problems tab.
 ### For the extension
 You need to include the full path to the flake8 executable that you wish to use.
 
-To find the path to the appropriate flake8 you can _(on *nix)_ do. I'm sure you can do
-something similar on Windows too.
+To find the path to the appropriate flake8 you can _(on *nix)_ do. I'm sure you can do something similar on Windows too.
 
 ```bash
 which flake8
@@ -43,6 +41,16 @@ The set it in `Settings.json`
 	"cornflakes.linter.executablePath": "path/to/venvs/myvenv/bin/flake8"
 }
 ```
+
+#### Change when the linter is run
+There are a couple of options here so that you can decide when to re-lint the
+current file. You can choose either on save or on type! Again all settings are
+available through the settings page, or the json.
+
+```json
+{
+	"cornflakes.linter.run": "onType"
+}
 
 ### Flake8 configuration
 

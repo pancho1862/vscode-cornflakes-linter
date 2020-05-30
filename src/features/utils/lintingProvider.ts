@@ -101,7 +101,7 @@ export class LintingProvider {
 			this.documentListener = vscode.workspace.onDidSaveTextDocument(this.triggerLint, this);
 		}
 
-		// Configuration has changed. Reevaluate all documents.
+		// Configuration has changed. Re-evaluate all documents.
 		vscode.workspace.textDocuments.forEach(this.triggerLint, this);
 	}
 
@@ -122,17 +122,26 @@ export class LintingProvider {
 	private doLint(textDocument: vscode.TextDocument): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 			let executable: string = this.linterConfiguration.executable;
+			
 			let filePath: string = textDocument.fileName;
 			let diagnostics: vscode.Diagnostic[] = [];
 			let filteredDiagnostics: vscode.Diagnostic[] = [];
 			let buffer: string = "";
 			let options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
+
+			// Args for flake8
 			let args: string[] = [];
-
+			// Verbose output.
 			args.push("-v");
-			args.push(filePath);
+			// Read stdin for file input.
+			args.push("-");
 
-			let childProcess = cp.spawn(executable, args, options);
+			// Start flake8 and have it accept input form stdin.
+			let childProcess = cp.spawn(executable, args, options)
+
+			// Now that flake8 has started write the document to stdin.
+			childProcess.stdin.write(textDocument.getText())
+			childProcess.stdin.end()
 
 			childProcess.on('error', (error: Error) => {
 				if (this.executableNotFound) {

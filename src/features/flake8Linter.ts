@@ -60,8 +60,10 @@ export default class Flake8LintingProvider implements Linter {
 				return;
 			}
 			// Check that the the error is actually for the file we are 
-			// processing.
-			if (filePath === (matches[1])) {
+			// processing, might need to change this in the future but for now
+			// we can just || it with stdin.
+			let matchFile = matches[1]
+			if (matchFile === filePath || matchFile === "stdin") {
 				diagnostics.push({
 					range: new Range(parseInt(matches[2]) - 1, 0, parseInt(matches[2]) - 1, Number.MAX_VALUE),
 					severity: DiagnosticSeverity.Information,
