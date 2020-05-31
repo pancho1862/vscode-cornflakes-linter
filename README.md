@@ -2,7 +2,7 @@
 
 "cornflakes-linter" is a wrapper for `flake8`.
 
-** fixed windows pathing issue in the latest release (0.4) **
+** added `onType` linting (0.5) **
 
 vscode currently already has flake8 integration HOWEVER it doesn't play nicely with
 flake8 plugins in that the regex can't parse the output correctly. This means that the
@@ -51,6 +51,7 @@ available through the settings page, or the json.
 {
 	"cornflakes.linter.run": "onType"
 }
+```
 
 ### Flake8 configuration
 
