@@ -43,7 +43,7 @@
 				"cornflakes.linter.executablePath": {
 					"type": "string",
 					"default": "flake8",
-					"description": "Points to the flake8 exectuable."
+					"description": "Points to the flake8 executable."
 				},
 				"cornflakes.linter.run": {
 					"type": "string",
